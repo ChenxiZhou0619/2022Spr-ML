@@ -8,6 +8,8 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset
 
+from matplotlib import pyplot as plt
+
 logger = logging.getLogger()
 
 
@@ -31,6 +33,7 @@ class ImageDataset(Dataset):
         #img_path = os.path.join("dataset", self.dataset, img_name)
         img_path = os.path.join("/data/yxs", self.dataset, img_name)
         image = PIL.Image.open(img_path).convert("RGB")
+
         if self.transform:
             image = self.transform(image)
         sample["image"] = image
@@ -40,6 +43,15 @@ class ImageDataset(Dataset):
 
     def get_image_class(self, y):
         return self.data_frame[self.data_frame["label"] == y]
+
+    def to_tensor(self) -> torch.Tensor:
+        data = []
+        for item in self:
+            data.append(item['image'])
+        tensor_data = data[0].unsqueeze(0)
+        for idx in range(1, len(data)):
+            tensor_data = torch.cat((tensor_data, data[idx].unsqueeze(0)), dim=0)
+        return tensor_data
 
 
 def get_statistics(dataset: str):

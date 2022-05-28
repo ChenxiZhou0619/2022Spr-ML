@@ -15,11 +15,11 @@ def base_parser():
     parser.add_argument(
         "--dir",
         type=str,
-        default="/home/xyk/CIFAR100"
+        default="/home/zcx/Downloads/CIFAR100"
     )
     
     parser.add_argument(
-        "--memory_size", type=int, default=500, help="Episodic memory size"
+        "--memory_size", type=int, default=2000, help="Episodic memory size"
     )
 
     
@@ -33,7 +33,7 @@ def base_parser():
     parser.add_argument("--opt_name", type=str, default="sgd", help="[adam, sgd]")
     parser.add_argument("--sched_name", type=str, default="cos", help="[cos, anneal]")
     parser.add_argument("--batch_size", type=int, default=128, help="batch size")
-    parser.add_argument("--n_epoch", type=int, default=5, help="Epoch")
+    parser.add_argument("--n_epoch", type=int, default=30, help="Epoch")
 
     parser.add_argument("--n_worker", type=int, default=0, help="The number of workers")
 

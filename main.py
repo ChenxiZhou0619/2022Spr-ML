@@ -10,8 +10,12 @@ from torchvision import transforms
 from configuration import config
 from utils.data_loader import get_statistics
 from methods.finetune import Finetune
+from methods.iCaRL import iCaRL
+
 from collections import defaultdict
 from dataset import get_datalist, get_classlist
+
+import pdb
 
 def main():
     args = config.base_parser()
@@ -35,7 +39,7 @@ def main():
     else:
         device = torch.device("cpu")
 
-        logger.info(f"Set the device ({device})")
+    logger.info(f"Set the device ({device})")
 
     torch.manual_seed(113)
     torch.backends.cudnn.deterministic = True
@@ -43,6 +47,8 @@ def main():
     np.random.seed(113)
     random.seed(113)
 
+
+    # n_classes = 100, inp_size = 32
     mean, std, n_classes, inp_size, _ = get_statistics(dataset=args.dataset)
     train_transform = transforms.Compose(
         [
@@ -67,15 +73,21 @@ def main():
 
     # generate class order
     # split classes to args.n_task  tasks
-    class_of_task = [2, 10]   # the classes of each task
+    # total 100 classes, each task for 20, total 5 tasks
+    class_of_task = [20, 20, 20, 20, 20]   # the classes of each task
     class_order = get_classlist(args)
+
+    ## class_order : ['n00001', 'n00002' ...]
+
     random.shuffle(class_order)
     start_label = 0
 
     kwargs = vars(args)
 
     # create a instance of your method
-    method = Finetune(criterion, device, train_transform, test_transform, class_of_task[0], n_classes, **kwargs)
+    #method = Finetune(criterion, device, train_transform, test_transform, class_of_task[0], n_classes, **kwargs)
+    method = iCaRL(criterion, device, train_transform, test_transform, class_of_task[0], n_classes, **kwargs)
+    
     task_records = defaultdict(list)
     for cur_iter in range(len(class_of_task)):
         print("\n" + "#" * 50)
@@ -85,7 +97,10 @@ def main():
         logger.info("set train/test datalist for the current task!")
         # get datalist 
         cur_train_datalist = get_datalist(args, 'train', class_order[start_label:start_label+class_of_task[cur_iter]], start_label)
+        ## get_datalist->
+        ## [{filename:'filepath', label: x} ...]
         cur_test_datalist = get_datalist(args, 'test', class_order[:start_label+class_of_task[cur_iter]], 0)
+        
         method.set_current_dataset(cur_train_datalist, cur_test_datalist)
         # before task:  update some attribute about network(fc layer,  optimizer,  num_learning_class)
         method.before_task(cur_train_datalist)
